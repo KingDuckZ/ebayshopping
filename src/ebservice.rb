@@ -46,7 +46,18 @@ module Ebay
 	
 			findPath = ServicePaths[parName].gsub("%OPERATION%", parOperation)
 			res = @httpObj.post(findPath, envelop.to_json, headers)
-			JSON.parse(res.body)
+			retVal = JSON.parse(res.body)
+			if retVal.is_a?(Hash) then
+				raise StandardError, "Query returned an hash with #{retVal.size} entries" unless retVal.size == 1
+				strReturnValueKey = "#{parOperation}Response"
+				retArr = retVal[strReturnValueKey]
+				raise StandardError, "Hash should contain an array at key \"#{strReturnValueKey}\", but there is a \"#{retArr.class.name}\"" unless retArr.is_a?(Array)
+				raise StandardError, "Returned hash contains #{retArr.size} entries instead of 1" unless retArr.size == 1
+				return retArr.first
+			else
+				raise StandardError, "Unexpected result of type \"#{retVal.class.name}\""
+				return nil
+			end
 		end
 	end
 end

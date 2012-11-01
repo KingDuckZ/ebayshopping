@@ -34,6 +34,21 @@ class SearchWrapper < Ebay::EbService
 			params.fetch("itemFilter", Array.new) << { "name" => "LocalSearchOnly", "value" => "true" }
 		end
 
-		self.callService(:FindingService, "findItemsByKeywords", "1.11.0", params, @appID)
+		hResult = self.callService(:FindingService, "findItemsByKeywords", "1.11.0", params, @appID)
+
+		#ack
+		#version
+		#timestamp
+		#searchResult
+		#paginationOutput
+		#itemSearchURL
+		if !hResult["ack"].is_a?(Array) || hResult["ack"].first != "Success" then
+			raise StandardError, "Search failed with error: #{hResult["ack"]}"
+		end
+
+		retSize = hResult["searchResult"].first["@count"].to_i
+		retVal = hResult["searchResult"].first["item"]
+		raise StandardError, "Query result reports a count of #{retSize} items, but then returned #{retVal.size} items" if retSize != retVal.size
+		retVal
 	end
 end
