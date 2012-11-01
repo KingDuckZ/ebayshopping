@@ -1,48 +1,39 @@
-require 'net/http.rb'
-require 'json'
+require 'ebservice.rb'
 
-class ApiWrapper
-#	@@BaseURL = 'svcs.ebay.com'
-#	@@AppID = "Dev009d5c-57c5-4c49-854b-d6a41365508"
-	@@BaseURL = 'svcs.sandbox.ebay.com'
-	@@AppID = "Dev00793b-c9f4-4930-9a45-1c9d897f958"
-	@@ServiceVersion = "v1"
-	@@FindingService = '/services/search/FindingService/' + @@ServiceVersion + '?OPERATION-NAME='
+class SearchWrapper < Ebay::EbService
+	attr_reader :appID
+	attr_accessor :localSearchOnly
 
-	def initialize(parCountry)
-		@httpObj = Net::HTTP.new(@@BaseURL)
-		@country = parCountry || "IT"
+	def initialize(parCountry, parAppID, parSandboxMode, parSSL)
+		super(parSandboxMode, parSSL, parCountry)
+		@appID = parAppID
+		@postalCode = nil
+		@localSearchOnly = false
 		nil
 	end
 
+	def postalCode()
+		return @postalCode
+	end
+
+	def postalCode=(parNew)
+		raise ArgumentError, "Postal code must be a string" unless parNew.is_a?(String) || parNew.nil?
+		@postalCode = parNew
+	end
+
 	def findByKeywords(parKeywords)
-		raise "Invalid parameter type: \"#{parKeywords.class.name}\"" unless parKeywords.is_a?(String)
-		raise "Unclean keywords" if parKeywords.tainted?
+		raise ArgumentError, "Invalid parameter type: \"#{parKeywords.class.name}\"" unless parKeywords.is_a?(String)
+		raise ArgumentError, "Unclean keywords" if parKeywords.tainted?
 
-		findByKeyword = 'findItemsByKeywords'
-		findPath = @@FindingService + findByKeyword
-		params = {
-			"keywords" => parKeywords
-		}
-		envelop = {
-			"jsonns.xsi" => "http://www.w3.org/2001/XMLSchema-instance",
-			"jsonns.xs" => "http://www.w3.org/2001/XMLSchema",
-			"tns.findItemsByKeywordsRequest" => params
-		}
-		headers = {
-			"X-EBAY-SOA-SERVICE-NAME" => "FindingService",
-			"X-EBAY-SOA-OPERATION-NAME" => findByKeyword,
-			"X-EBAY-SOA-SERVICE-VERSION" => "1.11.0",
-			"X-EBAY-SOA-GLOBAL-ID" => "EBAY-#{@country}",
-			"X-EBAY-SOA-SECURITY-APPNAME" => @@AppID,
-			"X-EBAY-SOA-REQUEST-DATA-FORMAT" => "JSON",
-		}
+		params = { "keywords" => parKeywords }
+		unless @postalCode.nil? then
+			params["buyerPostalCode"] = @postalCode
+			params["sortOrder"] = "Distance"
+		end
+		if @localSearchOnly then
+			params.fetch("itemFilter", Array.new) << { "name" => "LocalSearchOnly", "value" => "true" }
+		end
 
-		res = @httpObj.post(findPath, envelop.to_json, headers)
-		res.body
+		self.callService(:FindingService, "findItemsByKeywords", "1.11.0", params, @appID)
 	end
 end
-
-obj = ApiWrapper.new("IT")
-retVal = obj.findByKeywords("hard disk")
-puts retVal

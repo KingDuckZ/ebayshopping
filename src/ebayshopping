@@ -1,0 +1,14 @@
+#!/usr/bin/env ruby
+
+require 'pathname'
+APP_PATH = File.join(Pathname.new(File.dirname(__FILE__)).realpath.to_s, "/")
+$: << APP_PATH
+
+require 'searchwrapper.rb'
+
+AppID = "Dev009d5c-57c5-4c49-854b-d6a41365508"
+AppID_Sandbox = "Dev00793b-c9f4-4930-9a45-1c9d897f958"
+
+obj = SearchWrapper.new(nil, AppID_Sandbox, true, false)
+retVal = obj.findByKeywords("hard disk")
+puts retVal.class.name
