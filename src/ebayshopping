@@ -8,7 +8,28 @@ require 'searchwrapper.rb'
 
 AppID = "Dev009d5c-57c5-4c49-854b-d6a41365508"
 AppID_Sandbox = "Dev00793b-c9f4-4930-9a45-1c9d897f958"
+SandboxMode = true
 
-obj = SearchWrapper.new(nil, AppID_Sandbox, true, false)
-retVal = obj.findByKeywords("hard disk")
-p retVal.first
+def main(parArgs)
+	if parArgs.empty? then
+		$stderr.puts "Please enter a search term"
+		return 2
+	end
+
+	searchString = parArgs.first.dup
+	#Not sure it needs special treatment - if so add it in EbService
+	searchString.untaint
+
+	appID = (SandboxMode ? AppID_Sandbox : AppID)
+	searcher = SearchWrapper.new(nil, appID, SandboxMode, false)
+
+	#autoPay, country, globalId, isMultiVariationListing, itemId, listingInfo,
+	#location, paymentMethod, primaryCategory, sellingStatus, shippingInfo,
+	#title, topRatedListing, viewItemURL
+	searcher.each_result(searchString) do |tableResult|
+		puts "#{tableResult["internalItemNum"]} - #{tableResult["title"]}"
+	end
+	return 0
+end
+
+exit(main(ARGV))
