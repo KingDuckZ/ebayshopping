@@ -25,7 +25,7 @@ require 'searchwrapper.rb'
 
 AppID = "Dev009d5c-57c5-4c49-854b-d6a41365508"
 AppID_Sandbox = "Dev00793b-c9f4-4930-9a45-1c9d897f958"
-SandboxMode = true
+SandboxMode = $DEBUG
 
 def main(parArgs)
 	if parArgs.empty? then
@@ -38,12 +38,12 @@ def main(parArgs)
 	searchString.untaint
 
 	appID = (SandboxMode ? AppID_Sandbox : AppID)
-	searcher = SearchWrapper.new(nil, appID, SandboxMode, false)
+	searcher = SearchWrapper.new(nil, appID, SandboxMode, false, nil)
 
 	#autoPay, country, globalId, isMultiVariationListing, itemId, listingInfo,
-	#location, paymentMethod, primaryCategory, sellingStatus, shippingInfo,
-	#title, topRatedListing, viewItemURL
-	searcher.each_result(searchString) do |tableResult|
+	#location, paymentMethod, primaryCategory, sellerInfo, sellingStatus,
+	#shippingInfo, title, topRatedListing, viewItemURL
+	searcher.each_result(searchString, true) do |tableResult|
 		puts "#{tableResult["internalItemNum"]} - #{tableResult["title"]}"
 	end
 	return 0
