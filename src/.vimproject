@@ -1,0 +1,6 @@
+
+EbayShopping=/media/gigadunk/michele/dev/ruby/ebayshopping/src CD=/media/gigadunk/michele/dev/ruby/ebayshopping/src filter="*.rb ebayshopping" {
+ ebservice.rb
+ searchwrapper.rb
+ ebayshopping
+}
